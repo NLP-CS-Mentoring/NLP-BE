@@ -1,21 +1,27 @@
-# ------------------------------- 인 메모리 사용(v1) --------------------------------------
+# ------------------------------- Redis 사용(v2) --------------------------------------
+# --------------------- Redis를 Docker로 띄우거나 직접 설치한 후 실행 ---------------------
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
 from cover_letter.loader import load_text_from_file
 from cover_letter.analyzer import analyze_style
 from cover_letter.generator import generate_cover_letter
+from cover_letter.cache import init_redis, close_redis, get_cached_style, set_cached_style
 
 import hashlib
 import time
 
 load_dotenv()
 
-# 파일 받고 스타일 분석하는 부분을 캐시를 사용해서 응답 속도 늘리기 위함(약 53%정도 속도 개선)
-# 파일 캐시 저장소 -> redis로 변경 main_redis.py 참조
-CACHE = {}
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_redis()
+    yield
+    await close_redis()
+
+app = FastAPI(lifespan=lifespan)
 
 class BasicRequest(BaseModel):
     user_fact: str # 사용자 입력
@@ -63,16 +69,17 @@ async def generate_styled_cover_letter(
         t1 = time.time()
         phase_1 = t1 - t0
 
+        cached_style = await get_cached_style(file_hash)
         # [Phase 2]
-        if file_hash in CACHE: # 캐시 히트
-            style_result = CACHE[file_hash]
+        if cached_style: # 캐시 히트
+            style_result = cached_style
 
             t2 = time.time()
             phase_2 = t2 - t1
         else: # 캐시 미스
             raw_text = load_text_from_file(content, file.filename) # pdf나 txt로 부터 텍스트 읽어오기
             style_result = analyze_style(raw_text) # 스타일 분석
-            CACHE[file_hash] = style_result
+            await set_cached_style(file_hash, style_result, expire=60 * 60 * 24)
 
             t2 = time.time()
             phase_2 = t2 - t1
@@ -85,8 +92,8 @@ async def generate_styled_cover_letter(
         total_time = t3 - t0
 
         print(f"total_time: {round(total_time, 4)}, phase_1: {round(phase_1, 4)}, phase_2: {round(phase_2, 4)}, phase_3: {round(phase_3, 4)}")
-        # total_time(캐시 미스): 10.9809, phase_1: 0.0022, phase_2: 4.7772, phase_3: 6.2015
-        # total_time(캐시 히트): 7.13, phase_1: 0.0021, phase_2: 0.0, phase_3: 7.1279
+        # total_time: 11.8218, phase_1: 0.0023, phase_2: 6.375, phase_3: 5.4444
+        # total_time: 7.5262, phase_1: 0.0015, phase_2: 0.0024, phase_3: 7.5223
 
         return {
             "status": "success",
