@@ -5,6 +5,12 @@ from pydantic import BaseModel
 
 from githubInterview.githubInterviewApi import router as github_interview_router  
 from csInterview.csInterviewApi import router as cs_interview_router
+from users.userApi import router as users_router
+
+from database import engine
+from users import models
+
+models.Base.metadata.create_all(bind=engine)
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -19,3 +25,4 @@ app = FastAPI(
 
 app.include_router(github_interview_router)
 app.include_router(cs_interview_router)
+app.include_router(users_router)

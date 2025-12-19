@@ -1,7 +1,12 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends, HTTPException, Cookie, status
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from .random_service import get_random_question, check_answer
+
+# ✅ users 쪽 deps/crud/db 가져오기
+from users import crud as users_crud
+from users.deps import get_db, get_current_user
 
 router = APIRouter()
 
@@ -27,17 +32,30 @@ class AnswerRequest(BaseModel):
 
 
 @router.post("/check-answer")
-def check_answer_api(payload: AnswerRequest):
+def check_answer_api(
+    payload: AnswerRequest,
+    db: Session = Depends(get_db),
+    me = Depends(get_current_user),
+):
     result = check_answer(payload.id, payload.user_answer)
     if not result:
-        return {"message": f"ID '{payload.id}' 에 해당하는 문제가 없습니다."}
+        raise HTTPException(status_code=404, detail="문제 없음")
+
+    topic = result.get("topic")
+    is_correct = bool(result.get("final_correct"))
+
+    if topic:
+        users_crud.update_user_topic_stats(
+            db,
+            user_id=me.id,
+            topic=topic,
+            is_correct=is_correct,
+        )
     return result
 
 
 @router.get("/question-by-topic")
 def question_by_topic(topic: str):
-    # 기존에 topic_service를 통해 처리하던 것을 random_service와 메타데이터로 대체합니다.
-    # 필요 시 topic_service의 get_question_by_topic을 import하여 사용하도록 변경 가능합니다.
     from .topic_service import get_question_by_topic
 
     result = get_question_by_topic(topic)
