@@ -1,0 +1,20 @@
+jsx란 무엇이며, 이는 자바스크립트에서 어떻게 변환되나요?|||
+
+프론트엔드와 관련된 질문이에요.
+JSX는 JavaScript XML의 약자로, React에서 UI를 선언적으로 표현하기 위해 사용하는 확장 문법입니다. HTML과 유사한 문법을 사용하여 JavaScript 코드 안에서 UI 구조를 직관적으로 표현할 수 있도록 해줍니다.
+
+JSX는 브라우저에서 직접 실행할 수 없습니다. Babel과 같은 트랜스파일러를 통해 일반적인 JavaScript 코드로 변환된 후 실행됩니다. 예를 들면 다음과 같습니다.
+
+const element = (
+  <h1 className="greeting">
+    Hello, JSX!
+  </h1>
+);
+위의 JSX 코드가 트랜스파일링 과정을 거치면 다음과 같은 JavaScript 코드로 변환됩니다.
+
+const element = React.createElement(
+  'h1',
+  {className: 'greeting'},
+  'Hello, world!'
+);
+여기서, React.createElement()는 React의 핵심 API 중 하나로, 가상 DOM 요소를 생성하는 역할을 합니다. 이를 통해 React는 요소를 트리 구조로 관리하고, 변경 사항을 효율적으로 감지해 실제 DOM에 반영합니다.
