@@ -19,25 +19,3 @@ app = FastAPI(
 
 app.include_router(github_interview_router)
 app.include_router(cs_interview_router)
-from users.api import router as users_router
-from users import models as users_models
-
-# init users DB
-users_models.init_db()
-app.include_router(users_router, prefix="/auth")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # 나중에 프론트 도메인으로 좁혀도 됨
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.on_event("startup")
-def startup_event():
-    reload_questions()
-
-
-# `csInterview` 엔드포인트들은 `csInterview.api` 라우터로 이동했습니다.
