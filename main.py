@@ -1,55 +1,60 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List, Dict, Any # Dict, Any 추가 필요
-import rag_core
+from typing import List
+
+# ★ 만든 모듈들 임포트
+import schemas         # 데이터 모델 (schemas.py)
+import analyze_news    # 뉴스 분석 엔진
+import recommend_tech  # 채용 분석 엔진
 
 app = FastAPI()
 
-# --- 데이터 모델 정의 ---
-
-# ★ 변경: report 필드가 문자열(str)이 아니라 객체(Dict)입니다.
-class ReportResponse(BaseModel):
-    article_count: int
-    report: Dict[str, Any] 
-
-class UserRequest(BaseModel):
-    interest: str
-
-class ArticleResponse(BaseModel):
-    title: str
-    link: str
-    pubDate: str
-    content: str 
-
-# --- API 엔드포인트 ---
+# --- [API 엔드포인트] ---
 
 @app.get("/")
 def read_root():
-    return {"message": "IT 뉴스 RAG 서버가 정상 작동 중입니다."}
+    return {"message": "IT 커리어 & 뉴스 통합 RAG 서버입니다."}
 
-@app.get("/analyze", response_model=ReportResponse)
-def get_trend_analysis():
-    news_data = rag_core.load_and_filter_data("it_news_with_content.json")
-    if not news_data:
-        raise HTTPException(status_code=404, detail="데이터 파일이 없거나 비어있습니다.")
+# === [기능 A] 뉴스 분석 및 추천 ===
 
-    docs = rag_core.create_documents(news_data)
+@app.get("/news/analyze", response_model=schemas.NewsReportResponse)
+def get_news_trend():
+    """뉴스 트렌드 리포트 생성"""
+    report = analyze_news.analyze_trends()
     
-    # rag_core가 이제 JSON 객체를 반환합니다.
-    report, count = rag_core.analyze_trends(docs)
-
-    return {
-        "article_count": count,
-        "report": report
-    }
-
-@app.post("/recommend", response_model=List[ArticleResponse])
-def get_recommendations(user: UserRequest):
-    news_data = rag_core.load_and_filter_data("it_news_with_content.json")
-    if not news_data:
-        raise HTTPException(status_code=404, detail="데이터 파일이 없거나 비어있습니다.")
-
-    docs = rag_core.create_documents(news_data)
-    results = rag_core.recommend_articles(docs, user.interest, k=5)
+    if not report:
+        raise HTTPException(status_code=500, detail="뉴스 분석 실패 (DB 확인 필요)")
     
-    return results
+    return {"report": report}
+
+@app.post("/news/recommend", response_model=List[schemas.ArticleResponse])
+def recommend_news(req: schemas.NewsRequest):
+    """뉴스 기사 추천"""
+    results = analyze_news.recommend_articles(req.interest, k=5)
+    
+    # schemas.ArticleResponse 형태에 맞춰 변환
+    formatted_results = []
+    for r in results:
+        formatted_results.append({
+            "title": r.get("title", ""),
+            "link": r.get("link", ""),
+            "preview": r.get("preview", ""),
+            "pubDate": r.get("pubDate", "")
+        })
+    return formatted_results
+
+# === [기능 B] 채용 공고 기반 커리어 컨설팅 ===
+
+@app.post("/career/advice", response_model=schemas.CareerResponse)
+def get_career_advice(req: schemas.CareerRequest):
+    """채용 공고 데이터 기반 커리어 조언"""
+    print(f"🤔 커리어 상담 요청: {req.query}")
+    
+    try:
+        # recommend_tech 모듈 호출
+        result_text = recommend_tech.get_career_advice(req.query)
+        return {"advice": result_text}
+    except Exception as e:
+        print(f"에러 발생: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 서버 실행: uvicorn main:app --reload
