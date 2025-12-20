@@ -9,6 +9,7 @@ from users.userApi import router as users_router
 
 from database import engine
 from users import models
+from fastapi.middleware.cors import CORSMiddleware
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -21,6 +22,16 @@ app = FastAPI(
     title="CS Interview Question Service",
     description="Chroma + txt 기반 CS 면접 문제 랜덤 제공 & 채점 API",
     version="0.3.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",  # Vite dev
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(github_interview_router)

@@ -1,3 +1,4 @@
+# users/models.py
 import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
@@ -8,25 +9,34 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
+    username = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now)
 
-    auth_sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
-    topic_stats = relationship("UserTopicStat", back_populates="user", cascade="all, delete-orphan")
+    auth_sessions = relationship(
+        "UserSession",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    topic_stats = relationship(
+        "UserTopicStat",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
 
 class UserSession(Base):
     __tablename__ = "user_sessions"
 
     session_id = Column(String, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now)
-    expires_at = Column(DateTime)
+    expires_at = Column(DateTime, nullable=False)
 
     user = relationship("User", back_populates="auth_sessions")
 
 
-# ✅ 새 테이블: 유저-토픽 통계
 class UserTopicStat(Base):
     __tablename__ = "user_topic_stats"
 
