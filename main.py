@@ -1,5 +1,6 @@
 # ------------------------------- 인 메모리 사용(v1) --------------------------------------
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -11,11 +12,18 @@ import hashlib
 import time
 
 load_dotenv()
-
+# uv run python -m uvicorn main:app
 # 파일 받고 스타일 분석하는 부분을 캐시를 사용해서 응답 속도 늘리기 위함(약 53%정도 속도 개선)
 # 파일 캐시 저장소 -> redis로 변경 main_redis.py 참조
 CACHE = {}
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class BasicRequest(BaseModel):
     user_fact: str # 사용자 입력

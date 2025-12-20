@@ -1,6 +1,7 @@
 # ------------------------------- Redis 사용(v2) --------------------------------------
 # --------------------- Redis를 Docker로 띄우거나 직접 설치한 후 실행 ---------------------
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -22,6 +23,13 @@ async def lifespan(app: FastAPI):
     await close_redis()
 
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class BasicRequest(BaseModel):
     user_fact: str # 사용자 입력
