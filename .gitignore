@@ -1,5 +1,5 @@
-
 # local
 .env
 __pycache__/
 *.pyc
+interview.db

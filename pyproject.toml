@@ -3,8 +3,21 @@ name = "nlp-be"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.11,<3.14"
 dependencies = [
-    "fastapi>=0.124.0",
+    "fastapi>=0.95.2,<0.100.0",
+    "pydantic>=1.10,<2.0",
+    "chromadb==0.4.24",
+    "sentence-transformers>=5.1.2",
     "uvicorn[standard]>=0.38.0",
+    "numpy<2.0.0",
+    "openai>=2.13.0",
+    "python-dotenv>=1.2.1",
+    "sqlalchemy>=1.4",
+    "passlib[bcrypt]>=1.7",
+    "PyJWT>=2.0",
+    "sqlalchemy-orm>=1.2.10",
 ]
+
+[tool.poetry.dev-dependencies]
+
