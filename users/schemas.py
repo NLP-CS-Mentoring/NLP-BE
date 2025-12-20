@@ -1,4 +1,3 @@
-# users/schemas.py  (Pydantic v1 호환)
 from typing import List, Optional
 import datetime
 from pydantic import BaseModel

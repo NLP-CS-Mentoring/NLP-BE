@@ -1,4 +1,3 @@
-# users/userApi.py
 from fastapi import APIRouter, Depends, HTTPException, Response, Cookie, status
 from sqlalchemy.orm import Session
 

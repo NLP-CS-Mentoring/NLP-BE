@@ -1,4 +1,3 @@
-# csInterview/index_questions.py
 from pathlib import Path
 from .chroma_client import get_collection
 

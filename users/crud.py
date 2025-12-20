@@ -1,4 +1,3 @@
-# users/crud.py
 import datetime
 import secrets
 from sqlalchemy.orm import Session
@@ -33,7 +32,6 @@ def create_user(db: Session, user: schemas.UserCreate):
 def create_user_session(db: Session, user_id: int) -> models.UserSession:
     session_id = secrets.token_hex(32)
 
-    # ✅ UTC-aware
     now_utc = datetime.datetime.now(datetime.timezone.utc)
     expires_at = now_utc + datetime.timedelta(days=7)
 

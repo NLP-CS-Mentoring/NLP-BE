@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 
 from .random_service import get_random_question, check_answer
 
-# ✅ users 쪽 deps/crud/db 가져오기
 from users import crud as users_crud
 from users.deps import get_db, get_current_user
 

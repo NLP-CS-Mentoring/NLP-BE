@@ -32,7 +32,7 @@ def build_repo_context(owner: str, repo: str) -> tuple[str, str]:
     branch, all_paths = fetch_repo_tree(owner, repo)
     important = choose_important_paths(all_paths, limit=10)
 
-    # 남은 rate limit에 맞춰 읽을 파일 수를 제한합니다.
+    # 남은 rate limit에 맞춰 읽을 파일 수를 제한.
     remaining = get_rate_limit_remaining()
     # 안전 마진: 다른 내부 호출을 위해 몇 건 확보합니다.
     safe_reserve = 3

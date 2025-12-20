@@ -1,4 +1,3 @@
-# csInterview/chroma_client.py
 from pathlib import Path
 import chromadb
 from chromadb.utils import embedding_functions

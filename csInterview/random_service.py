@@ -1,4 +1,3 @@
-# csInterview/random_service.py
 from .chroma_client import get_collection
 import difflib
 import numpy as np
@@ -84,7 +83,6 @@ def check_answer(question_id: str, user_answer: str):
     if meta is None or question is None:
         return None
 
-    # ✅ 메타데이터 구조에 따라 채점용 정답 가져오기
     # answer_core 가 있으면 그걸 쓰고, 없으면 answer, 그것도 없으면 빈 문자열
     core_answer = (
         meta.get("answer_core")
