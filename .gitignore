@@ -1,5 +1,15 @@
-# local
-.env
+
+
+.venv
+venv/
+
+__pycache__/
+__pycache__
+*.pyc
+
+docker-compose.yml
+Dockerfile
+performance.py
 __pycache__/
 *.pyc
 interview.db
