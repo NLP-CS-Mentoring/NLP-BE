@@ -1,5 +1,7 @@
+import os  # ★ [추가] 폴더 경로 제어를 위해 필요
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles  # ★ [확인] 이미 있었네요! 잘 쓰겠습니다.
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
@@ -15,9 +17,10 @@ from routers.github_interview_router import router as github_interview_router
 from routers.cs_interview_router import router as cs_interview_router
 from users.userApi import router as users_router
 
-# [라우터 임포트 - 내 것 (방금 만든 파일들)]
+# [라우터 임포트 - 내 것]
 from routers.news_career_router import router as news_career_router
 from routers.cover_letter_router import router as cover_letter_router
+from routers.agent_router import router as agent_router
 
 load_dotenv()
 
@@ -36,13 +39,13 @@ async def lifespan(app: FastAPI):
     await close_redis() # Redis 연결 해제
 
 # ======================================================
-# 앱 설정 (FastAPI 선언은 여기서 딱 한 번만!)
+# 앱 설정
 # ======================================================
 app = FastAPI(
     title="IT Interview & Career Service",
     description="CS 면접, 자소서 생성, 뉴스 트렌드 분석 통합 API",
-    version="0.3.0",
-    lifespan=lifespan # ★ 중요: Redis lifespan 등록
+    version="0.4.0",
+    lifespan=lifespan
 )
 
 # CORS 설정
@@ -55,7 +58,21 @@ app.add_middleware(
 )
 
 # ======================================================
-# 라우터 조립 (팀원 + 내 코드)
+# ★ [NEW] 정적 파일(PDF) 다운로드 경로 설정
+# ======================================================
+# 1. main.py 위치 기준으로 'outputs' 폴더 경로 찾기
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
+
+# 2. 폴더가 없으면 에러 나니까 미리 생성 (안전장치)
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# 3. 브라우저가 '/downloads'로 접속하면 'outputs' 폴더를 보여주도록 연결(Mount)
+app.mount("/downloads", StaticFiles(directory=OUTPUT_DIR), name="downloads")
+
+
+# ======================================================
+# 라우터 조립
 # ======================================================
 app.include_router(github_interview_router)
 app.include_router(cs_interview_router)
@@ -64,7 +81,8 @@ app.include_router(users_router)
 # 내 라우터 추가
 app.include_router(news_career_router)
 app.include_router(cover_letter_router)
+app.include_router(agent_router)
 
 @app.get("/")
 def read_root():
-    return {"message": "All Systems Operational (Redis, DB, RAG)"}
+    return {"message": "All Systems Operational (Redis, DB, RAG, File Server)"}

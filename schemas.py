@@ -38,3 +38,8 @@ class QuestionReq(BaseModel):
 class GradeReq(BaseModel):
     session_id: str
     answer: str
+
+# === [AI Agent 관련] ===
+class AgentRequest(BaseModel):
+    message: str = Field(..., title="사용자 명령", example="이 내용을 PDF로 만들어줘")
+    context: Optional[str] = Field(None, title="현재 화면의 자소서 내용")
