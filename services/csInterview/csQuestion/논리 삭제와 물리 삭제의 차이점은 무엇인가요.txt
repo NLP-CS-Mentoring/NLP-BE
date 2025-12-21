@@ -1,0 +1,11 @@
+논리 삭제와 물리 삭제의 차이점은 무엇인가요?|||
+
+백엔드와 관련된 질문이에요.
+데이터베이스에서 데이터를 삭제하는 방법은 크게 물리 삭제(Hard Delete) 와 논리 삭제(Soft Delete) 가 존재합니다. 물리 삭제는 DELETE 명령어를 통해 직접 데이터를 삭제하는 방식이며, 논리 삭제는 UPDATE 명령을 사용하여 삭제를 여부를 나타내는 컬럼을 수정하는 방식을 의미합니다. 즉, 물리 삭제는 실제로 데이터를 삭제하는 반면 논리 삭제는 데이터가 삭제되었음을 표시만 한다는 점에서 차이가 있습니다.
+
+# 물리 삭제 처리
+delete from member where id = 1;
+
+# 논리 삭제 처리와 조회
+update member set deleted_at = curdate() where id = 1;
+select * from member where deleted_at is null;
