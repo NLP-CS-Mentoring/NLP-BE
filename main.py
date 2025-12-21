@@ -16,6 +16,7 @@ from services.cover_letter.cache import init_redis, close_redis
 from routers.github_interview_router import router as github_interview_router
 from routers.cs_interview_router import router as cs_interview_router
 from users.userApi import router as users_router
+from routers.algorithm_router import router as algorithm_router
 
 # [라우터 임포트 - 내 것]
 from routers.news_career_router import router as news_career_router
@@ -82,6 +83,7 @@ app.include_router(users_router)
 app.include_router(news_career_router)
 app.include_router(cover_letter_router)
 app.include_router(agent_router)
+app.include_router(algorithm_router)
 
 @app.get("/")
 def read_root():
