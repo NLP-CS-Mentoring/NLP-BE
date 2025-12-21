@@ -1,4 +1,3 @@
-"""알고리즘 문제 유사도 검색 + 소크라테스식 힌트 생성 모듈."""
 from __future__ import annotations
 
 import json
@@ -7,17 +6,22 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List, Dict
 
-import numpy as np
+import chromadb
+from chromadb.utils import embedding_functions
 from dotenv import load_dotenv
 from openai import OpenAI
-from sentence_transformers import SentenceTransformer
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
+DEFAULT_DATA_PATH = BASE_DIR / "problems_seed_flattened.json"
+CHROMA_PATH = Path(os.getenv("CHROMA_PATH") or (BASE_DIR / "chroma_db"))
+COLLECTION_NAME = "algo_problems"
 MODEL_NAME = "all-MiniLM-L6-v2"
 
-_embedding_model = SentenceTransformer(MODEL_NAME)
+_embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
+	model_name=MODEL_NAME
+)
 
 
 def _build_text_blob(item: Dict[str, str]) -> str:
@@ -30,19 +34,18 @@ def _build_text_blob(item: Dict[str, str]) -> str:
     )
 
 
+def _get_data_path() -> Path:
+    env_path = os.getenv("PROBLEMS_PATH")
+    return Path(env_path) if env_path else DEFAULT_DATA_PATH
+
+
 @lru_cache(maxsize=1)
 def _load_corpus() -> List[Dict[str, str]]:
-    data_path = BASE_DIR / "problems_seed.json"
+    data_path = _get_data_path()
+    if not data_path.exists():
+        raise FileNotFoundError(f"corpus file not found: {data_path}")
     with open(data_path, "r", encoding="utf-8") as f:
         return json.load(f)
-
-
-@lru_cache(maxsize=1)
-def _get_corpus_embeddings() -> tuple[List[Dict[str, str]], np.ndarray]:
-    corpus = _load_corpus()
-    blobs = [_build_text_blob(item) for item in corpus]
-    embs = _embedding_model.encode(blobs, normalize_embeddings=True)
-    return corpus, np.array(embs, dtype=np.float32)
 
 
 def _get_openai_client() -> OpenAI | None:
@@ -52,33 +55,89 @@ def _get_openai_client() -> OpenAI | None:
     return OpenAI(api_key=api_key)
 
 
+@lru_cache(maxsize=1)
+def _get_client() -> chromadb.ClientAPI:
+	CHROMA_PATH.mkdir(parents=True, exist_ok=True)
+	return chromadb.PersistentClient(path=str(CHROMA_PATH))
+
+
+def _get_collection():
+	client = _get_client()
+	return client.get_or_create_collection(
+		name=COLLECTION_NAME,
+		embedding_function=_embedding_fn,
+		metadata={"hnsw:space": "cosine"},
+	)
+
+
+def _rebuild_collection(corpus: List[Dict[str, str]]):
+	client = _get_client()
+	try:
+		client.delete_collection(COLLECTION_NAME)
+	except Exception:
+		pass
+	col = _get_collection()
+	ids = [item.get("id", str(i)) for i, item in enumerate(corpus)]
+	docs = [_build_text_blob(item) for item in corpus]
+	metas = []
+	for i, item in enumerate(corpus):
+		raw_tags = item.get("tags", [])
+		tags_str = ", ".join(raw_tags) if isinstance(raw_tags, list) else str(raw_tags)
+		metas.append(
+			{
+				"id": ids[i],
+				"title": item.get("title", ""),
+				"source": item.get("source", ""),
+				"url": item.get("url"),
+				"tags": tags_str,
+				"solution_outline": item.get("solution_outline", ""),
+			}
+		)
+	if docs:
+		col.add(ids=ids, documents=docs, metadatas=metas)
+
+
+def ensure_collection():
+	corpus = _load_corpus()
+	col = _get_collection()
+	# 간단한 개수 불일치 시 재빌드
+	if col.count() != len(corpus):
+		_rebuild_collection(corpus)
+	return col
+
+
 def search_similar_problems(statement: str, top_k: int = 3) -> List[Dict[str, str]]:
-    """문제 지문(statement)과 코퍼스 간 코사인 유사도 Top-K 반환."""
-    if top_k <= 0:
-        top_k = 3
+	"""문제 지문(statement)과 코퍼스 간 코사인 유사도 Top-K 반환."""
+	if top_k <= 0:
+		top_k = 3
 
-    corpus, embs = _get_corpus_embeddings()
-    query_emb = _embedding_model.encode([statement], normalize_embeddings=True)[0]
-
-    sims = np.dot(embs, query_emb)
-    sorted_idx = np.argsort(-sims)
-
-    results: List[Dict[str, str]] = []
-    for idx in sorted_idx[: min(top_k, len(corpus))]:
-        item = corpus[int(idx)]
-        sim = float(sims[int(idx)])
-        results.append(
-            {
-                "id": item.get("id", str(idx)),
-                "title": item.get("title", ""),
-                "source": item.get("source", ""),
-                "url": item.get("url"),
-                "tags": item.get("tags", []),
-                "solution_outline": item.get("solution_outline", ""),
-                "similarity": round(sim, 4),
-            }
-        )
-    return results
+	col = ensure_collection()
+	res = col.query(query_texts=[statement], n_results=top_k)
+	metas = res.get("metadatas", [[]])[0]
+	dists = res.get("distances", [[]])[0] if res.get("distances") else []
+	results: List[Dict[str, str]] = []
+	for i, m in enumerate(metas or []):
+		dist = float(dists[i]) if i < len(dists) else 1.0
+		sim = round(1.0 - dist, 4)
+		raw_tags = m.get("tags", [])
+		if isinstance(raw_tags, str):
+			tags_list = [t.strip() for t in raw_tags.split(",") if t.strip()]
+		elif isinstance(raw_tags, list):
+			tags_list = raw_tags
+		else:
+			tags_list = []
+		results.append(
+			{
+				"id": m.get("id", ""),
+				"title": m.get("title", ""),
+				"source": m.get("source", ""),
+				"url": m.get("url"),
+				"tags": tags_list,
+				"solution_outline": m.get("solution_outline", ""),
+				"similarity": sim,
+			}
+		)
+	return results
 
 
 _HINT_SYSTEM_PROMPT = """
@@ -144,3 +203,16 @@ def analyze_problem(statement: str, top_k: int = 3) -> Dict[str, object]:
     similar = search_similar_problems(statement, top_k=top_k)
     hint = generate_hint(statement, similar)
     return {"similar": similar, "hint": hint}
+
+
+def refresh_corpus(new_path: str | None = None) -> Path:
+	target_path = Path(new_path) if new_path else _get_data_path()
+	if not target_path.exists():
+		raise FileNotFoundError(f"corpus file not found: {target_path}")
+	os.environ["PROBLEMS_PATH"] = str(target_path)
+	_load_corpus.cache_clear()
+	_get_client.cache_clear()
+	ensure_collection.cache_clear()
+	corpus = _load_corpus()
+	_rebuild_collection(corpus)
+	return target_path
