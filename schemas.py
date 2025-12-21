@@ -43,3 +43,23 @@ class GradeReq(BaseModel):
 class AgentRequest(BaseModel):
     message: str = Field(..., title="사용자 명령", example="이 내용을 PDF로 만들어줘")
     context: Optional[str] = Field(None, title="현재 화면의 자소서 내용")
+
+# === [알고리즘 유사도 & 힌트 봇] ===
+class AlgorithmProblemRequest(BaseModel):
+    statement: str = Field(..., description="현재 풀고 있는 문제 지문 또는 핵심 요구사항")
+    top_k: int = Field(3, description="추천할 유사 문제 개수 (기본 3)")
+
+
+class SimilarProblem(BaseModel):
+    id: str
+    title: str
+    source: str
+    url: Optional[str] = None
+    tags: List[str]
+    similarity: float
+    solution_outline: str
+
+
+class AlgorithmHintResponse(BaseModel):
+    similar: List[SimilarProblem]
+    hint: str

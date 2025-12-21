@@ -11,11 +11,13 @@ from users import models
 
 # [Redis 관련]
 from services.cover_letter.cache import init_redis, close_redis
+from services.Algorithm.hint_bot import ensure_collection  # Chroma warm-up
 
 # [라우터 임포트 - 팀원들 것]
 from routers.github_interview_router import router as github_interview_router
 from routers.cs_interview_router import router as cs_interview_router
 from users.userApi import router as users_router
+from routers.algorithm_router import router as algorithm_router
 
 # [라우터 임포트 - 내 것]
 from routers.news_career_router import router as news_career_router
@@ -34,6 +36,11 @@ models.Base.metadata.create_all(bind=engine)
 async def lifespan(app: FastAPI):
     print("🚀 Server Starting... Connecting to Redis...")
     await init_redis()  # Redis 연결
+    try:
+        ensure_collection()
+        print("✅ Chroma collection ready.")
+    except Exception as e:
+        print(f"⚠️ Chroma init failed: {e}")
     yield
     print("👋 Server Shutting down... Closing Redis...")
     await close_redis() # Redis 연결 해제
@@ -82,6 +89,7 @@ app.include_router(users_router)
 app.include_router(news_career_router)
 app.include_router(cover_letter_router)
 app.include_router(agent_router)
+app.include_router(algorithm_router)
 
 @app.get("/")
 def read_root():
