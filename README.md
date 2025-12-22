@@ -12,8 +12,8 @@
 
 ## 📖 프로젝트 개요 (Overview)
 
-이 프로젝트는 취업 준비생이 겪는 정보의 홍수와 반복적인 작업 부담을 줄이기 위해 개발되었습니다.  
-단순한 챗봇을 넘어 **실제 행동(Action)을 수행하는 AI Agent**를 탑재하였으며, **Vector DB**를 통해 노이즈가 제거된 고품질의 IT 정보만을 제공합니다. 또한, 이미지로 된 채용 공고까지 분석하는 **OCR 기술**을 도입하여 데이터의 사각지대를 없앴습니다.
+이 프로젝트는 취업 준비생이 겪는 방대한 정보와 CS 지식 학습의 부담을 줄이기 위해 개발되었습니다.
+단순한 챗봇을 넘어 **실제 행동(Action)을 수행하는 AI Agent**를 탑재하였으며, **Vector DB**를 통해 노이즈가 제거된 고품질의 IT 정보만을 제공합니다. 또한, 이미지로 된 채용 공고까지 분석하는 **OCR 기술**을 도입하여 최신 채용 공고를 기반으로한 정보를 제공합니다.
 
 ---
 
@@ -24,7 +24,7 @@
 - **GitHub 기반 면접**: 사용자의 GitHub 레포지토리를 분석하여, 실제 작성한 프로젝트 코드에 기반한 맞춤형 예상 질문 생성.
 
 ### 2️⃣ 📝 AI 자소서 & Action Agent (Cover Letter & Automation)
-- **페르소나 기반 작성**: 사용자의 경험과 평소 말투를 학습하여 '나다운' 자소서 초안 생성.
+- **페르소나 기반 작성**: 사용자의 경험과 평소 말투를 학습하여 맞춤형 자소서 초안 생성.
 - **Action Agent**:
   - 자소서 작성 중 궁금한 CS 지식 실시간 답변.
   - **PDF 자동 생성**: 완성된 자소서를 명령어 한 번으로 PDF 변환 및 다운로드 (한글 줄바꿈 최적화 적용).
@@ -63,35 +63,35 @@
 
 🚀 설치 및 실행 (How to Run)
 1. 사전 요구 사항
-Python 3.12 이상
+`Python 3.12 이상`
 
-Tesseract-OCR 설치 (Windows / Mac: brew install tesseract)
+`Tesseract-OCR 설치 (Windows / Mac: brew install tesseract)`
 
 2. 프로젝트 클론 및 패키지 설치
-Bash
-
+```
 git clone [REPOSITORY_URL]
 cd NLP-BE
+```
 
-# 가상환경 생성 및 패키지 설치 (uv 사용 권장)
-uv sync 
-# 또는
-pip install -r requirements.txt
+- 가상환경 생성 및 패키지 설치 (uv 사용 권장)
+`uv sync`
+또는
+`pip install -r requirements.txt`
 3. 환경 변수 설정 (.env)
-Ini, TOML
-
+```
 OPENAI_API_KEY=sk-proj-...
 SMTP_USER=your_email@gmail.com
 SMTP_PASSWORD=your_app_password
+```
 4. 서버 실행
-Bash
-
+```
 uv run uvicorn main:app --reload
 서버 실행 후 http://localhost:8000/docs 로 접속하여 API 문서를 확인할 수 있습니다.
+```
 
 👨‍💻 Author
+```
 Backend & AI Engineer: [본인 이름]
-
 Email: [본인 이메일]
-
 Github: [본인 깃허브 링크]
+```
