@@ -9,22 +9,16 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib.utils import simpleSplit  # ★ [NEW] 긴 문장 자동 줄바꿈 도구
-
+from reportlab.lib.utils import simpleSplit  
 load_dotenv()
 
-# 경로 설정
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))      # .../NLP-BE/services
-OUTPUT_DIR = os.path.join(BASE_DIR, "..", "outputs")      # .../NLP-BE/outputs
-FONTS_DIR = os.path.join(BASE_DIR, "..", "fonts")               # .../NLP-BE/fonts
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))     
+OUTPUT_DIR = os.path.join(BASE_DIR, "..", "outputs")      
+FONTS_DIR = os.path.join(BASE_DIR, "..", "fonts")             
 
-# ==========================================
-# ★ 중요: 프로젝트 내장 폰트 등록
-# ==========================================
-# 폰트 파일명 (대소문자 정확히 확인하세요! 보통 Malgun.ttf 또는 malgun.ttf)
 FONT_FILENAME = "Malgun.ttf" 
 FONT_PATH = os.path.join(FONTS_DIR, FONT_FILENAME)
-FONT_NAME = "MyKoreanFont"  # ReportLab에서 사용할 폰트 별명
+FONT_NAME = "MyKoreanFont"  
 
 try:
     if os.path.exists(FONT_PATH):
@@ -70,7 +64,7 @@ def save_text_to_pdf(content: str) -> str:
     y = height - 40
     line_height = 20
     
-    # ★ 핵심: 글자가 들어갈 수 있는 최대 가로 폭 계산
+    # 글자가 들어갈 수 있는 최대 가로 폭 계산
     max_width = width - (left_margin + right_margin)
 
     # 텍스트 줄바꿈 처리

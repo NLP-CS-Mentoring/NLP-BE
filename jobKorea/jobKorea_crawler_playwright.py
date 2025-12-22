@@ -6,16 +6,14 @@ from PIL import Image, ImageEnhance, ImageFilter
 import pytesseract
 from io import BytesIO
 
-# ── [설정] ──
 TESSERACT_PATH = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 KEYWORDS = ["개발자", "AI", "클라우드"]
 PAGES_PER_KEYWORD = 5
-RAW_FILE_NAME = "job_postings_raw.json"  # ★ 원본 데이터 저장 파일
+RAW_FILE_NAME = "job_postings_raw.json"  
 BASE_URL = "https://www.jobkorea.co.kr"
 
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
-# ── 이미지 전처리 ──
 def preprocess_image(img):
     width, height = img.size
     if height > 10000: scale_factor = 0.5
@@ -34,7 +32,6 @@ def preprocess_image(img):
     img = img.point(lambda x: 0 if x < thresh else 255, '1')
     return img
 
-# ── 크롤링 로직 ──
 async def get_job_links(page, keyword, pages_to_scrape):
     links = []
     print(f"   └ 🔍 '{keyword}' 검색 시작...")
@@ -57,7 +54,6 @@ async def get_job_links(page, keyword, pages_to_scrape):
                     full_url = BASE_URL + href if not href.startswith("http") else href
                     
                     if not any(l['link'] == full_url for l in links):
-                        # ★ 여기서는 일단 '회사명 미상'으로 두고 상세페이지에서 채움
                         links.append({
                             "company": "회사명 미상",
                             "title": title, 
@@ -77,7 +73,6 @@ async def parse_job_detail(page, job_info):
         await page.goto(url, wait_until="domcontentloaded")
         await page.wait_for_timeout(2000)
 
-        # ── [1] 회사명 추출 (분리 저장용) ──
         company = "회사명 미상"
         if await page.locator(".coName").count() > 0:
             company = await page.locator(".coName").first.inner_text()
@@ -91,14 +86,12 @@ async def parse_job_detail(page, job_info):
 
         final_company = company.strip()
 
-        # ── [2] 본문 추출 ──
         content_parts = []
         if await page.locator("dl.tbList").count() > 0:
             content_parts.append(await page.locator("dl.tbList").first.inner_text())
 
         extracted = False
         
-        # Iframe 탐색
         iframe_element = await page.query_selector('iframe[src*="GI_Read_Comt_Ifrm"]')
         if iframe_element:
             frame = await iframe_element.content_frame()
@@ -154,10 +147,9 @@ async def parse_job_detail(page, job_info):
         else:
             print(f"      ✅ 추출 성공 ({len(final_content)}자)")
 
-        # ★ [핵심 변경] 회사명과 제목을 분리해서 리턴
         return {
             "company": final_company,
-            "title": job_info['title'],  # 회사명 제외된 순수 제목
+            "title": job_info['title'],
             "link": url,
             "content": final_content,
             "pubDate": "정보 없음"
@@ -190,8 +182,6 @@ async def main():
             if data: results.append(data)
         
         await browser.close()
-
-    # ★ 원본(Raw) 파일로 저장
     with open(RAW_FILE_NAME, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     print(f"\n🎉 [Step 1 완료] '{RAW_FILE_NAME}' 생성됨 (회사명/제목 분리됨).")

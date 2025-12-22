@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 
-# 만든 모듈 임포트
 import schemas
 from services.news import analyze_news
 from services.career import recommend_tech
@@ -10,7 +9,6 @@ router = APIRouter(
     tags=["RAG (News & Career)"]
 )
 
-# === [기능 A] 뉴스 분석 및 추천 ===
 @router.get("/news/analyze", response_model=schemas.NewsReportResponse)
 def get_news_trend():
     report = analyze_news.analyze_trends()
@@ -31,7 +29,6 @@ def recommend_news(req: schemas.NewsRequest):
         })
     return formatted_results
 
-# === [기능 B] 채용 공고 기반 커리어 컨설팅 ===
 @router.post("/career/advice", response_model=schemas.CareerResponse)
 def get_career_advice(req: schemas.CareerRequest):
     try:

@@ -22,13 +22,8 @@ def strip_tags(s: str) -> str:
     if not s:
         return s
     
-    # 1. HTML 태그 제거 (<br>, <b> 등)
     s = re.sub(r"<[^>]+>", "", s)
-    
-    # 2. [요청 사항 반영] &quot; 및 기타 HTML 엔티티 처리
-    # 사용자가 '삭제'를 원했으므로 공백으로 치환하거나, 
-    # 원래 문자인 쌍따옴표(")로 복원할 수 있습니다.
-    # 여기서는 읽기 편하게 원래 문자(")로 복원하고, 불필요한 기호를 정리합니다.
+
     s = html.unescape(s)  # &quot; -> ", &lt; -> < 등으로 자동 변환
     
     # 혹시 남아있을 수 있는 쓰레기 값 제거 (필요 시 추가)
@@ -189,13 +184,9 @@ def save_csv(path: str, rows):
         w.writerows(rows)
 
 if __name__ == "__main__":
-    # 1. 검색어 리스트 정의 (분야별 균형 수집)
     search_keywords = [
-        # AI / 신기술
         "생성형 AI", "LLM", "AI 에이전트", "피지컬 AI",
-        # 개발 트렌드 / 커리어
         "개발자 채용", "소프트웨어 개발", "오픈소스",
-        # 프론트 / 백엔드 / 클라우드
         "프론트엔드 트렌드", "백엔드 개발", "클라우드"
     ]
     
@@ -203,18 +194,14 @@ if __name__ == "__main__":
     
     all_news_data = []
 
-    # 2. 키워드별 반복 수집
     for keyword in search_keywords:
         print(f"🔍 '{keyword}' 검색 중...")
         
-        # days=7 (최근 7일), display=100 (한 번에 100개 요청)
         news_items = fetch_news(query=keyword, days=7, display=100, only_naver_news_link=True)
         
         print(f"   -> {len(news_items)}개 수집 완료")
         all_news_data.extend(news_items)
 
-    # 3. 중복 제거 (여러 키워드에 겹친 기사 삭제)
-    # 딕셔너리를 이용해 'link'가 같으면 하나만 남김
     unique_news_map = {item['link']: item for item in all_news_data}
     final_news_list = list(unique_news_map.values())
 

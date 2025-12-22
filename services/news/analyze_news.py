@@ -3,21 +3,17 @@ import json
 from typing import List
 from dotenv import load_dotenv
 
-# 랭체인 관련
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
 
-# 환경변수 로드
 load_dotenv()
 
-# [설정] create_db.py와 경로가 같아야 함
 DB_PATH = "./news_chroma_db"
 COLLECTION_NAME = "it_news_data"
 
-# [출력 데이터 구조 정의]
 class TrendReportStructure(BaseModel):
     summary: List[str] = Field(description="최신 기술 뉴스 3줄 요약 리스트 (구체적 기술명 포함)")
     keywords: List[str] = Field(description="핵심 기술 키워드 5개 리스트")
@@ -45,22 +41,18 @@ def analyze_trends():
 
     print("\n🧠 [트렌드 분석] 최신 뉴스 분석 중...")
     
-    # [수정 전]
-    # retriever = vector_store.as_retriever(search_kwargs={"k": 8})
 
-    # [수정 후] ★ MMR 방식 적용
     retriever = vectorstore.as_retriever(
-        search_type="mmr",  # 다양성 기반 검색 활성화
+        search_type="mmr", 
         search_kwargs={
-            "k": 8,          # 최종적으로 가져올 문서 개수
-            "fetch_k": 30,   # 다양성을 확보하기 위해 처음에 후보로 훑어볼 문서 개수 (넓게 보고 추림)
-            "lambda_mult": 0.6  # 0.0(완전 다양성) ~ 1.0(완전 정확도). 0.5~0.7 추천
+            "k": 8,          
+            "fetch_k": 30,   
+            "lambda_mult": 0.6  
         }
     )
     query = "개발자 취업, 최신 AI 모델"
     retrieved_docs = retriever.invoke(query)
     
-    # 2. LLM 체인 실행
     parser = JsonOutputParser(pydantic_object=TrendReportStructure)
     
     template = """
@@ -114,12 +106,10 @@ def recommend_articles(user_interest, k=3):
     return recs
 
 if __name__ == "__main__":
-    # 1. 트렌드 분석
     report = analyze_trends()
     if report:
         print(json.dumps(report, indent=2, ensure_ascii=False))
 
-    # 2. 기사 추천 예시
     my_interest = "RAG 및 LLM 최적화"
     recommendations = recommend_articles(my_interest)
     
