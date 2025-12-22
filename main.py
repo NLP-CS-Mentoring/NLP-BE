@@ -1,7 +1,7 @@
-import os  # ★ [추가] 폴더 경로 제어를 위해 필요
+import os  
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles  # ★ [확인] 이미 있었네요! 잘 쓰겠습니다.
+from fastapi.staticfiles import StaticFiles  
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
@@ -11,15 +11,12 @@ from users import models
 
 # [Redis 관련]
 from services.cover_letter.cache import init_redis, close_redis
-from services.Algorithm.hint_bot import ensure_collection  # Chroma warm-up
-
-# [라우터 임포트 - 팀원들 것]
+from services.Algorithm.hint_bot import ensure_collection  
+# [ROuter 임포트]
 from routers.github_interview_router import router as github_interview_router
 from routers.cs_interview_router import router as cs_interview_router
 from users.userApi import router as users_router
 from routers.algorithm_router import router as algorithm_router
-
-# [라우터 임포트 - 내 것]
 from routers.news_career_router import router as news_career_router
 from routers.cover_letter_router import router as cover_letter_router
 from routers.agent_router import router as agent_router
@@ -65,7 +62,7 @@ app.add_middleware(
 )
 
 # ======================================================
-# ★ [NEW] 정적 파일(PDF) 다운로드 경로 설정
+# 정적 파일(PDF) 다운로드 경로 설정
 # ======================================================
 # 1. main.py 위치 기준으로 'outputs' 폴더 경로 찾기
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -84,8 +81,6 @@ app.mount("/downloads", StaticFiles(directory=OUTPUT_DIR), name="downloads")
 app.include_router(github_interview_router)
 app.include_router(cs_interview_router)
 app.include_router(users_router)
-
-# 내 라우터 추가
 app.include_router(news_career_router)
 app.include_router(cover_letter_router)
 app.include_router(agent_router)

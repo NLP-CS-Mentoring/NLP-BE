@@ -4,11 +4,10 @@ import os
 from dotenv import load_dotenv, find_dotenv
 from groq import Groq
 
-# ── [설정] ──
 load_dotenv(find_dotenv())
 
-RAW_FILE_NAME = "job_postings_raw.json"       # 입력 파일
-FINAL_FILE_NAME = "job_postings_final.json"   # 출력 파일
+RAW_FILE_NAME = "job_postings_raw.json"      
+FINAL_FILE_NAME = "job_postings_final.json"   
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 def clean_text_with_groq(client, raw_text):
@@ -65,7 +64,6 @@ def main():
         print("❌ 오류: .env 파일에 GROQ_API_KEY가 없습니다.")
         return
 
-    # 1. 원본 파일 로드
     try:
         with open(RAW_FILE_NAME, "r", encoding="utf-8") as f:
             jobs = json.load(f)
@@ -79,7 +77,7 @@ def main():
     print(f"✅ 총 {len(jobs)}개 공고 정제 시작...")
 
     for i, job in enumerate(jobs, 1):
-        # 이제 job['company']와 job['title']이 분리되어 있으므로 예쁘게 출력 가능
+       
         print(f"[{i}/{len(jobs)}] {job['company']} - {job['title'][:20]}... 처리 중")
         
         original_content = job['content']
@@ -89,19 +87,17 @@ def main():
             print("      PASS (내용 부족)")
         else:
             cleaned_content = clean_text_with_groq(client, original_content)
-            time.sleep(2) # API 속도 제한 방지
+            time.sleep(2) 
 
-        # ★ 원본은 건드리지 않고, 새로운 딕셔너리에 담음
         processed_job = {
             "company": job['company'],
             "title": job['title'],
             "link": job['link'],
-            "content": cleaned_content, # 정제된 내용
+            "content": cleaned_content, 
             "pubDate": job['pubDate']
         }
         final_results.append(processed_job)
 
-    # 2. 최종 결과물 별도 저장
     with open(FINAL_FILE_NAME, "w", encoding="utf-8") as f:
         json.dump(final_results, f, ensure_ascii=False, indent=2)
     

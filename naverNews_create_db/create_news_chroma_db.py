@@ -6,12 +6,11 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 
-# 환경변수 로드
 load_dotenv()
 
 # [설정]
-NEWS_JSON_PATH = "it_news_with_content.json"  # 원본 데이터 파일명
-DB_PATH = "./news_chroma_db"                  # DB가 저장될 폴더명
+NEWS_JSON_PATH = "it_news_with_content.json"  
+DB_PATH = "./news_chroma_db"                 
 COLLECTION_NAME = "it_news_data"
 
 def is_tech_news(news_item):
@@ -56,7 +55,7 @@ def build_vector_db():
 
     print(f"📄 총 {len(documents)}개의 기사를 벡터화합니다.")
 
-    # 3. 기존 DB 폴더 초기화 (덮어쓰기)
+    # 3. 기존 DB 폴더 초기화 
     if os.path.exists(DB_PATH):
         shutil.rmtree(DB_PATH)
         print(f"🗑️ 기존 DB 폴더({DB_PATH}) 삭제 완료")

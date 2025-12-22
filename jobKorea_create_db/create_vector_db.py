@@ -7,13 +7,12 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from tqdm import tqdm
 
-# 1. 환경 변수 로드 (API Key)
 load_dotenv()
 
 # ── [설정] ──
-INPUT_FILE = "job_postings_final_qwen32b.json"  # 정제된 데이터 파일
-DB_PATH = "./chroma_db"                 # 벡터 DB가 저장될 로컬 폴더 경로
-COLLECTION_NAME = "job_postings"        # DB 내부의 컬렉션 이름
+INPUT_FILE = "job_postings_final_qwen32b.json"  
+DB_PATH = "./chroma_db"                 
+COLLECTION_NAME = "job_postings"       
 
 def create_vector_db():
     # 2. 데이터 파일 로드
@@ -52,24 +51,16 @@ def create_vector_db():
         doc = Document(page_content=page_content, metadata=metadata)
         documents.append(doc)
 
-    # 4. 임베딩 모델 설정 (gpt-4o-mini와 궁합이 좋은 모델)
-    # text-embedding-3-small: 가격이 저렴하고 성능이 우수함
+    # 4. 임베딩 모델 설정
     embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
-    # 5. 기존 DB가 있다면 초기화 (선택 사항)
-    # 깨끗하게 새로 만들고 싶다면 주석을 해제하세요.
-    # if os.path.exists(DB_PATH):
-    #     shutil.rmtree(DB_PATH)
-    #     print(f"🗑️ 기존 DB({DB_PATH}) 삭제 완료")
-
-    # 6. 벡터 DB 생성 및 저장 (Persistent)
+    # 65 벡터 DB 생성 및 저장 
     print(f"🚀 벡터 DB 생성 및 저장 시작... (경로: {DB_PATH})")
     
     vector_store = Chroma.from_documents(
         documents=documents,
         embedding=embeddings,
         collection_name=COLLECTION_NAME,
-        persist_directory=DB_PATH  # ★ 여기가 핵심: 로컬 폴더에 저장
     )
 
     print(f"🎉 벡터 DB 구축 완료! 총 {len(documents)}개의 문서가 저장되었습니다.")
@@ -79,7 +70,6 @@ def create_vector_db():
 def test_vector_db():
     print("\n🔍 [검증 테스트] 저장된 DB에서 검색을 시도합니다...")
     
-    # 저장된 DB 불러오기
     embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
     loaded_db = Chroma(
         persist_directory=DB_PATH, 

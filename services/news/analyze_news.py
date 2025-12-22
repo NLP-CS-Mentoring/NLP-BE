@@ -10,10 +10,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
 
-# 환경변수 로드
 load_dotenv()
 
-# [설정] create_db.py와 경로가 같아야 함
 DB_PATH = "./news_chroma_db"
 COLLECTION_NAME = "it_news_data"
 
@@ -44,11 +42,8 @@ def analyze_trends():
     if not vectorstore: return
 
     print("\n🧠 [트렌드 분석] 최신 뉴스 분석 중...")
-    
-    # [수정 전]
-    # retriever = vector_store.as_retriever(search_kwargs={"k": 8})
 
-    # [수정 후] ★ MMR 방식 적용
+    # MMR 방식 적용
     retriever = vectorstore.as_retriever(
         search_type="mmr",  # 다양성 기반 검색 활성화
         search_kwargs={

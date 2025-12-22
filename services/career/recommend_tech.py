@@ -8,8 +8,8 @@ from langchain_core.output_parsers import StrOutputParser
 
 # 1. 설정
 load_dotenv()
-DB_PATH = "./jobKorea_chroma_db"          # 채용 공고 DB 경로
-COLLECTION_NAME = "job_postings" # 컬렉션 이름
+DB_PATH = "./jobKorea_chroma_db"          
+COLLECTION_NAME = "job_postings" 
 
 # 2. 로컬 벡터 DB 및 체인 초기화 함수
 def get_rag_chain():
@@ -81,15 +81,13 @@ def get_rag_chain():
     
     return chain
 
-# 전역 변수로 체인 생성 (서버 시작 시 한 번만 로드)
-# 만약 DB가 없을 수도 있다면 try-except 처리가 필요할 수 있음
+# 만약 DB가 없을 경우 예외 처리
 try:
     career_chain = get_rag_chain()
 except Exception as e:
     print(f"⚠️ 채용 공고 RAG 초기화 실패: {e}")
     career_chain = None
 
-# ★ 외부에서 호출할 함수
 def get_career_advice(query: str):
     if not career_chain:
         return "죄송합니다. 채용 공고 데이터베이스가 준비되지 않았습니다."

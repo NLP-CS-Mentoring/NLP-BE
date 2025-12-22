@@ -6,7 +6,6 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 # [경로 설정]
-# 현재 파일 위치를 기준으로 프로젝트 루트(NLP-BE)를 찾아 sys.path에 추가
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(current_dir)
 if root_dir not in sys.path:
@@ -14,18 +13,14 @@ if root_dir not in sys.path:
 
 # [사용자 정의 모듈 임포트]
 from services.tools import send_email_with_pdf, save_text_to_pdf
-from schemas import AgentRequest  # ★ schemas.py에서 정의한 Pydantic 모델 사용
+from schemas import AgentRequest  
 
 load_dotenv()
 
 router = APIRouter(prefix="/agent", tags=["AI Agent"])
 
-# OpenAI 클라이언트 초기화
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# ==========================================
-# [시스템 프롬프트] - Brain: English / Mouth: Korean
-# ==========================================
 AGENT_SYSTEM_PROMPT = """
 You are a smart AI assistant for cover letter management.
 Your goal is to analyze the user's command and extract intent logically.
@@ -104,9 +99,7 @@ async def execute_command(req: AgentRequest):
         print(f"OpenAI API Error: {e}")
         return {"type": "text", "content": "죄송해요, AI 판단 중에 오류가 발생했어요."}
 
-    # ==================================================
-    # ★ 핵심 로직: [우선순위] 채팅 내용 > 화면 내용
-    # ==================================================
+    # [우선순위] 채팅 내용 > 화면 내용
     final_content = ""
     
     if new_content_from_chat:
@@ -115,8 +108,6 @@ async def execute_command(req: AgentRequest):
     elif current_context:
         # 그게 아니면 현재 화면에 떠 있는 내용을 사용
         final_content = current_context
-    
-    # --------------------------------------------------
 
     # [CASE A] PDF 저장
     if action == "save_pdf":
@@ -124,21 +115,20 @@ async def execute_command(req: AgentRequest):
             return {"type": "text", "content": "저장할 내용이 없어요. 내용을 입력해주시거나 자소서를 먼저 작성해주세요."}
         
         try:
-            # 1. 파일 생성 (여기서 path는 C:\Users\... 절대경로)
+            # 1. 파일 생성 
             full_path = save_text_to_pdf(final_content)
             
-            # 2. 파일명만 쏙 빼내기 (예: cover_letter_20251221.pdf)
+            # 2. 파일명 빼내기 
             filename = os.path.basename(full_path)
             
-            # 3. 접속 가능한 URL 만들기 (아까 main.py에서 만든 /downloads 경로 활용)
-            download_url = f"/downloads/{filename}" # 프론트엔드에서 쓸 주소
+            # 3. 접속 가능한 URL 만들기 
+            download_url = f"/downloads/{filename}"
 
-            # 4. 프론트엔드에 '이건 파일이야!'라고 알려주기
             return {
-                "type": "file",           # ★ 프론트가 이거 보고 "어? 파일이네? 버튼 띄워야지" 판단함
-                "content": reply,         # "네, PDF로 저장했습니다."
-                "url": download_url,      # 다운로드 링크
-                "filename": filename      # 파일 이름 (보여주기용)
+                "type": "file",           
+                "content": reply,         
+                "url": download_url,     
+                "filename": filename     
             }
             
         except Exception as tool_err:
