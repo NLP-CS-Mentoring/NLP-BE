@@ -58,7 +58,7 @@ def clean_text_with_groq(client, raw_text):
         return raw_text
 
 def main():
-    print(f"🚀 [Step 2] Groq AI 데이터 정제 및 분리 저장")
+    print(f"[Step 2] Groq AI 데이터 정제 및 분리 저장")
     
     if not GROQ_API_KEY:
         print("오류: .env 파일에 GROQ_API_KEY가 없습니다.")
