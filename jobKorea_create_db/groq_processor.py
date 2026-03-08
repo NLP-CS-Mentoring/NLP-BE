@@ -54,27 +54,27 @@ def clean_text_with_groq(client, raw_text):
         )
         return completion.choices[0].message.content
     except Exception as e:
-        print(f"      ⚠️ Groq API 에러: {e}")
+        print(f"Groq API 에러: {e}")
         return raw_text
 
 def main():
     print(f"🚀 [Step 2] Groq AI 데이터 정제 및 분리 저장")
     
     if not GROQ_API_KEY:
-        print("❌ 오류: .env 파일에 GROQ_API_KEY가 없습니다.")
+        print("오류: .env 파일에 GROQ_API_KEY가 없습니다.")
         return
 
     try:
         with open(RAW_FILE_NAME, "r", encoding="utf-8") as f:
             jobs = json.load(f)
     except FileNotFoundError:
-        print(f"❌ '{RAW_FILE_NAME}' 파일이 없습니다. Step 1을 먼저 실행하세요.")
+        print(f"'{RAW_FILE_NAME}' 파일이 없습니다. Step 1을 먼저 실행하세요.")
         return
 
     client = Groq(api_key=GROQ_API_KEY)
     final_results = []
 
-    print(f"✅ 총 {len(jobs)}개 공고 정제 시작...")
+    print(f"총 {len(jobs)}개 공고 정제 시작...")
 
     for i, job in enumerate(jobs, 1):
        
@@ -101,7 +101,7 @@ def main():
     with open(FINAL_FILE_NAME, "w", encoding="utf-8") as f:
         json.dump(final_results, f, ensure_ascii=False, indent=2)
     
-    print(f"\n🎉 [Step 2 완료] '{FINAL_FILE_NAME}' 파일에 저장되었습니다.")
+    print(f"\n[Step 2 완료] '{FINAL_FILE_NAME}' 파일에 저장되었습니다.")
 
 if __name__ == "__main__":
     main()
