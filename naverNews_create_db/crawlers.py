@@ -4,13 +4,12 @@ import time
 import json
 import csv
 import requests
-import html  # [NEW] HTML 엔티티 처리를 위해 추가
+import html  
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from bs4 import BeautifulSoup 
 from dotenv import load_dotenv
 
-# .env 파일 로드
 load_dotenv()
 
 NAVER_NEWS_API = "https://openapi.naver.com/v1/search/news.json"
@@ -25,11 +24,8 @@ def strip_tags(s: str) -> str:
     # 1. HTML 태그 제거 (<br>, <b> 등)
     s = re.sub(r"<[^>]+>", "", s)
     
-    # 2. [요청 사항 반영] &quot; 및 기타 HTML 엔티티 처리
-    # 사용자가 '삭제'를 원했으므로 공백으로 치환하거나, 
-    # 원래 문자인 쌍따옴표(")로 복원할 수 있습니다.
-    # 여기서는 읽기 편하게 원래 문자(")로 복원하고, 불필요한 기호를 정리합니다.
-    s = html.unescape(s)  # &quot; -> ", &lt; -> < 등으로 자동 변환
+    # 2. &quot; 및 기타 HTML 엔티티 처리
+    s = html.unescape(s) 
     
     # 혹시 남아있을 수 있는 쓰레기 값 제거 (필요 시 추가)
     s = s.replace("&quot;", "") 
@@ -107,7 +103,7 @@ def fetch_news(query: str, days: int = 14, display: int = 100, only_naver_news_l
     import urllib3
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     
-    # 키워드 하나당 최대 300개까지만 검색 (조절 가능)
+    # 키워드 하나당 최대 300개까지만 검색
     while start <= 300:
         params = {
             "query": query,
@@ -120,7 +116,7 @@ def fetch_news(query: str, days: int = 14, display: int = 100, only_naver_news_l
             resp = requests.get(NAVER_NEWS_API, headers=headers, params=params, timeout=10, verify=False)
             resp.raise_for_status()
         except Exception as e:
-            print(f"⚠️ API 요청 실패 ({query}): {e}")
+            print(f"API 요청 실패 ({query}): {e}")
             break
 
         data = resp.json()
@@ -218,7 +214,7 @@ if __name__ == "__main__":
     unique_news_map = {item['link']: item for item in all_news_data}
     final_news_list = list(unique_news_map.values())
 
-    print(f"\n✅ 최종 정리 완료: 총 {len(final_news_list)}건 (중복 {len(all_news_data) - len(final_news_list)}건 제거됨)")
+    print(f"\n최종 정리 완료: 총 {len(final_news_list)}건 (중복 {len(all_news_data) - len(final_news_list)}건 제거됨)")
 
     if final_news_list:
         save_json("it_news_with_content.json", final_news_list)
