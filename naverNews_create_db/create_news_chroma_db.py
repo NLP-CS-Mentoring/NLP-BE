@@ -29,7 +29,7 @@ def is_tech_news(news_item):
 def build_vector_db():
     # 1. JSON 파일 로드
     if not os.path.exists(NEWS_JSON_PATH):
-        print(f"❌ '{NEWS_JSON_PATH}' 파일이 없습니다.")
+        print(f" '{NEWS_JSON_PATH}' 파일이 없습니다.")
         return
 
     with open(NEWS_JSON_PATH, "r", encoding="utf-8") as f:
@@ -50,10 +50,10 @@ def build_vector_db():
             documents.append(doc)
     
     if not documents:
-        print("❌ 저장할 유효한 뉴스 데이터가 없습니다.")
+        print(" 저장할 유효한 뉴스 데이터가 없습니다.")
         return
 
-    print(f"📄 총 {len(documents)}개의 기사를 벡터화합니다.")
+    print(f" 총 {len(documents)}개의 기사를 벡터화합니다.")
 
     # 3. 기존 DB 폴더 초기화 
     if os.path.exists(DB_PATH):
@@ -61,7 +61,7 @@ def build_vector_db():
         print(f"🗑️ 기존 DB 폴더({DB_PATH}) 삭제 완료")
 
     # 4. 벡터 DB 생성 및 저장
-    print(f"🚀 벡터 DB 생성 중... (경로: {DB_PATH})")
+    print(f" 벡터 DB 생성 중... (경로: {DB_PATH})")
     embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
     
     Chroma.from_documents(
@@ -70,7 +70,7 @@ def build_vector_db():
         collection_name=COLLECTION_NAME,
         persist_directory=DB_PATH
     )
-    print("🎉 벡터 DB 구축 완료!")
+    print(" 벡터 DB 구축 완료!")
 
 if __name__ == "__main__":
     build_vector_db()
