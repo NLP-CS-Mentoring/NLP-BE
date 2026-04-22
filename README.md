@@ -61,8 +61,34 @@
 
 ---
 
-🚀 설치 및 실행 (How to Run)
+## 🧭 RAG 파이프라인
+
+```text
+채용공고/뉴스 수집
+→ OCR 및 HTML 본문 추출
+→ LLM 기반 노이즈 정제
+→ OpenAI Embedding으로 벡터화
+→ ChromaDB 저장
+→ FastAPI 요청
+→ 유사 문서 검색
+→ 검색 문서와 메타데이터를 LLM context로 전달
+→ 근거 링크를 포함한 답변 반환
+```
+
+## 📦 공개 저장소 구성 원칙
+
+이 저장소는 포트폴리오 공개를 위해 소스코드와 재현 가능한 스크립트 중심으로 정리했습니다.
+
+- API Key, SMTP 계정, 개인 환경변수는 포함하지 않습니다.
+- 크롤링 원본 데이터와 전체 정제 결과는 제3자 콘텐츠 이슈가 있어 제외합니다.
+- ChromaDB의 SQLite/bin 파일은 제외하고, DB 생성 스크립트만 제공합니다.
+- PDF 생성물과 로컬 캐시 파일은 제외합니다.
+- `samples/` 폴더에는 데이터 형식을 확인할 수 있는 익명화 샘플만 포함합니다.
+
+## 🚀 설치 및 실행 (How to Run)
+
 1. 사전 요구 사항
+
 `Python 3.12 이상`
 
 `Tesseract-OCR 설치 (Windows / Mac: brew install tesseract)`
@@ -79,11 +105,26 @@ cd NLP-BE
 `pip install -r requirements.txt`
 3. 환경 변수 설정 (.env)
 ```
-OPENAI_API_KEY=sk-proj-...
-SMTP_USER=your_email@gmail.com
+OPENAI_API_KEY=your_openai_api_key
+GROQ_API_KEY=your_groq_api_key
+NAVER_CLIENT_ID=your_naver_client_id
+NAVER_CLIENT_SECRET=your_naver_client_secret
+SMTP_USER=your_email@example.com
 SMTP_PASSWORD=your_app_password
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
 ```
-4. 서버 실행
+
+4. 샘플 데이터로 Qwen 정제 스크립트 실행
+
+```
+python NLP_Qwen2.5_32B/qwen_job_cleaner.py \
+  --input-file samples/sample_job_postings.json \
+  --output-file outputs/job_postings_cleaned_qwen32b.json
+```
+
+5. 서버 실행
+
 ```
 uv run uvicorn main:app --reload
 서버 실행 후 http://localhost:8000/docs 로 접속하여 API 문서를 확인할 수 있습니다.

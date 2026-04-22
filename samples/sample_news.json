@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Sample AI Model Released for Developers",
+    "description": "A new model release focuses on coding assistance and API integration.",
+    "content": "A sample technology article about a new AI model, developer tooling, API support, and cloud deployment workflows.",
+    "pubDate": "2026-04-01T09:00:00+09:00",
+    "link": "https://example.com/news/ai-model",
+    "originallink": "https://example.com/news/ai-model"
+  },
+  {
+    "title": "Sample Cloud Platform Adds Vector Search",
+    "description": "A cloud provider added managed vector search features for RAG applications.",
+    "content": "A sample article describing vector search, embeddings, RAG, monitoring, and production deployment concerns.",
+    "pubDate": "2026-04-02T09:00:00+09:00",
+    "link": "https://example.com/news/vector-search",
+    "originallink": "https://example.com/news/vector-search"
+  }
+]
